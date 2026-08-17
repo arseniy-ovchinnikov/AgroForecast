@@ -1,0 +1,119 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgroForecast — наукастинг валового сбора зерна</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.55 ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+ background:var(--bg);color:var(--text-primary)}
+.viz-root{color-scheme:light;--bg:#f5f5f3;--surface-1:#fcfcfb;--border:#e4e3df;
+ --text-primary:#0b0b0b;--text-secondary:#52514e;--text-muted:#807e78;
+ --series-1:#2a78d6;--series-2:#eb6834;--series-3:#1baf7a;--grid:#eceae6}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{
+ color-scheme:dark;--bg:#111110;--surface-1:#1a1a19;--border:#333330;
+ --text-primary:#fff;--text-secondary:#c3c2b7;--text-muted:#8f8d84;
+ --series-1:#3987e5;--series-2:#d95926;--series-3:#199e70;--grid:#2b2b28}}
+:root[data-theme="dark"] .viz-root{color-scheme:dark;--bg:#111110;--surface-1:#1a1a19;
+ --border:#333330;--text-primary:#fff;--text-secondary:#c3c2b7;--text-muted:#8f8d84;
+ --series-1:#3987e5;--series-2:#d95926;--series-3:#199e70;--grid:#2b2b28}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--text-secondary);margin:0 0 22px;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi .v{font-size:27px;font-weight:640;letter-spacing:-.02em}
+.kpi .k{font-size:12px;color:var(--text-muted);margin-top:3px}
+.hero .v{font-size:44px;color:var(--text-primary)}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;
+ padding:18px 18px 8px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 2px;font-weight:600}
+.card p{font-size:13px;color:var(--text-secondary);margin:0 0 10px}
+svg{width:100%;height:auto;display:block;overflow:visible}
+.grid{stroke:var(--grid);stroke-width:1}
+.ref{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:3 3}
+.mark{stroke:var(--text-muted);stroke-width:1;stroke-dasharray:2 4}
+.tick{font-size:11px;fill:var(--text-muted)}
+.lbl{font-size:12px;font-weight:600}
+.s1t{fill:var(--series-1)}.s2t{fill:var(--series-2)}.s3t{fill:var(--series-3)}
+polyline{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.s1{stroke:var(--series-1)}.s2{stroke:var(--series-2)}.s3{stroke:var(--series-3)}
+.b1{fill:var(--series-1)}.b2{fill:var(--series-2)}
+.hit{cursor:pointer}circle.hit{fill:transparent}
+circle.hit:hover{fill:var(--text-muted);fill-opacity:.18}
+rect.hit:hover{stroke:var(--surface-1);stroke-width:2}
+#tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;
+ background:var(--text-primary);color:var(--bg);padding:6px 10px;border-radius:6px;
+ font-size:12px;z-index:9;white-space:nowrap}
+.crow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+.crow:last-child{border:0}.crow b{font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--text-muted);font-weight:500}
+details{margin-top:8px}summary{cursor:pointer;color:var(--text-secondary);font-size:13px;padding:6px 0}
+.note{font-size:12.5px;color:var(--text-muted);margin-top:10px;line-height:1.5}
+</style></head>
+<body class="viz-root"><div class="wrap">
+<h1>Наукастинг валового сбора зерна по субъектам РФ</h1>
+<p class="sub">Модель смешанных частот (MIDAS) на 8-дневных композитах VIIRS · тест 2017–2025 ·
+459 наблюдений · вневыборочно, расширяющееся окно</p>
+
+<div class="kpis">
+<div class="kpi hero"><div class="v">434</div><div class="k">RMSE сбора, тыс. т</div></div>
+<div class="kpi"><div class="v">0.973</div><div class="k">R² валового сбора</div></div>
+<div class="kpi"><div class="v">6.8%</div><div class="k">ошибка по стране</div></div>
+<div class="kpi"><div class="v">0.77</div><div class="k">AUC раннего предупреждения</div></div>
+<div class="kpi"><div class="v">153</div><div class="k">дней опережения Росстата</div></div>
+</div>
+
+<div class="card"><h2>Точность по ходу сезона</h2>
+<p>RMSE валового сбора в зависимости от даты отсечки. Пунктир — выбранная отсечка 20.08.</p>
+<svg viewBox="0 0 720 300" role="img" aria-label="RMSE валового сбора по отсечкам сезона">
+<line class="grid" x1="58" y1="258.0" x2="702" y2="258.0"/><text class="tick" x="50" y="262.0" text-anchor="end">400</text><line class="grid" x1="58" y1="198.0" x2="702" y2="198.0"/><text class="tick" x="50" y="202.0" text-anchor="end">450</text><line class="grid" x1="58" y1="138.0" x2="702" y2="138.0"/><text class="tick" x="50" y="142.0" text-anchor="end">500</text><line class="grid" x1="58" y1="78.0" x2="702" y2="78.0"/><text class="tick" x="50" y="82.0" text-anchor="end">550</text><line class="grid" x1="58" y1="18.0" x2="702" y2="18.0"/><text class="tick" x="50" y="22.0" text-anchor="end">600</text><text class="tick" x="58.0" y="276" text-anchor="middle">14.04</text><text class="tick" x="145.8" y="276" text-anchor="middle">08.05</text><text class="tick" x="233.6" y="276" text-anchor="middle">01.06</text><text class="tick" x="321.5" y="276" text-anchor="middle">25.06</text><text class="tick" x="409.3" y="276" text-anchor="middle">19.07</text><text class="tick" x="497.1" y="276" text-anchor="middle">12.08</text><text class="tick" x="584.9" y="276" text-anchor="middle">05.09</text><text class="tick" x="672.7" y="276" text-anchor="middle">29.09</text>
+<line class="mark" x1="526.4" y1="18" x2="526.4" y2="258"/>
+<polyline class="s2" points="58.0,65.6 87.3,56.9 116.5,70.4 145.8,79.3 175.1,86.8 204.4,93.2 233.6,100.4 262.9,109.2 292.2,120.7 321.5,136.9 350.7,154.9 380.0,173.0 409.3,192.4 438.5,210.5 467.8,215.0 497.1,225.0 526.4,229.3 555.6,229.4 584.9,225.2 614.2,215.4 643.5,203.8 672.7,194.0 702.0,184.0"/><polyline class="s1" points="58.0,65.6 87.3,50.8 116.5,41.6 145.8,46.4 175.1,57.0 204.4,64.7 233.6,88.2 262.9,103.0 292.2,137.6 321.5,148.4 350.7,182.2 380.0,185.4 409.3,199.1 438.5,209.8 467.8,202.9 497.1,210.8 526.4,217.2 555.6,217.1 584.9,215.2 614.2,211.7 643.5,205.3 672.7,189.5 702.0,197.3"/>
+<text class="lbl s2t" x="350.7" y="143.9" text-anchor="middle">сезонное среднее</text>
+<text class="lbl s1t" x="350.7" y="203.2" text-anchor="middle">MIDAS</text>
+<circle class="hit" cx="58.0" cy="65.6" r="12" data-t="14.04 · MIDAS 560 · эталон 560 тыс. т"/><circle class="hit" cx="87.3" cy="50.8" r="12" data-t="22.04 · MIDAS 573 · эталон 568 тыс. т"/><circle class="hit" cx="116.5" cy="41.6" r="12" data-t="30.04 · MIDAS 580 · эталон 556 тыс. т"/><circle class="hit" cx="145.8" cy="46.4" r="12" data-t="08.05 · MIDAS 576 · эталон 549 тыс. т"/><circle class="hit" cx="175.1" cy="57.0" r="12" data-t="16.05 · MIDAS 568 · эталон 543 тыс. т"/><circle class="hit" cx="204.4" cy="64.7" r="12" data-t="24.05 · MIDAS 561 · эталон 537 тыс. т"/><circle class="hit" cx="233.6" cy="88.2" r="12" data-t="01.06 · MIDAS 542 · эталон 531 тыс. т"/><circle class="hit" cx="262.9" cy="103.0" r="12" data-t="09.06 · MIDAS 529 · эталон 524 тыс. т"/><circle class="hit" cx="292.2" cy="137.6" r="12" data-t="17.06 · MIDAS 500 · эталон 514 тыс. т"/><circle class="hit" cx="321.5" cy="148.4" r="12" data-t="25.06 · MIDAS 491 · эталон 501 тыс. т"/><circle class="hit" cx="350.7" cy="182.2" r="12" data-t="03.07 · MIDAS 463 · эталон 486 тыс. т"/><circle class="hit" cx="380.0" cy="185.4" r="12" data-t="11.07 · MIDAS 460 · эталон 471 тыс. т"/><circle class="hit" cx="409.3" cy="199.1" r="12" data-t="19.07 · MIDAS 449 · эталон 455 тыс. т"/><circle class="hit" cx="438.5" cy="209.8" r="12" data-t="27.07 · MIDAS 440 · эталон 440 тыс. т"/><circle class="hit" cx="467.8" cy="202.9" r="12" data-t="04.08 · MIDAS 446 · эталон 436 тыс. т"/><circle class="hit" cx="497.1" cy="210.8" r="12" data-t="12.08 · MIDAS 439 · эталон 428 тыс. т"/><circle class="hit" cx="526.4" cy="217.2" r="12" data-t="20.08 · MIDAS 434 · эталон 424 тыс. т"/><circle class="hit" cx="555.6" cy="217.1" r="12" data-t="28.08 · MIDAS 434 · эталон 424 тыс. т"/><circle class="hit" cx="584.9" cy="215.2" r="12" data-t="05.09 · MIDAS 436 · эталон 427 тыс. т"/><circle class="hit" cx="614.2" cy="211.7" r="12" data-t="13.09 · MIDAS 439 · эталон 436 тыс. т"/><circle class="hit" cx="643.5" cy="205.3" r="12" data-t="21.09 · MIDAS 444 · эталон 445 тыс. т"/><circle class="hit" cx="672.7" cy="189.5" r="12" data-t="29.09 · MIDAS 457 · эталон 453 тыс. т"/><circle class="hit" cx="702.0" cy="197.3" r="12" data-t="07.10 · MIDAS 451 · эталон 462 тыс. т"/></svg>
+<p class="note">Эталон — та же процедура и те же данные, но композиты усреднены по сезону.
+Разница изолирует один эффект: отказ от временнóго агрегирования.</p></div>
+
+<div class="card"><h2>Раннее предупреждение о недоборе</h2>
+<p>AUC обнаружения события «сбор ниже нормы региона за 5 лет более чем на 15 %». Пунктир — случайное угадывание.</p>
+<svg viewBox="0 0 720 300" role="img" aria-label="AUC раннего предупреждения по отсечкам">
+<line class="grid" x1="58" y1="258.0" x2="702" y2="258.0"/><text class="tick" x="50" y="262.0" text-anchor="end">0.55</text><line class="grid" x1="58" y1="178.0" x2="702" y2="178.0"/><text class="tick" x="50" y="182.0" text-anchor="end">0.65</text><line class="grid" x1="58" y1="98.0" x2="702" y2="98.0"/><text class="tick" x="50" y="102.0" text-anchor="end">0.75</text><line class="grid" x1="58" y1="18.0" x2="702" y2="18.0"/><text class="tick" x="50" y="22.0" text-anchor="end">0.85</text><text class="tick" x="58.0" y="276" text-anchor="middle">14.04</text><text class="tick" x="145.8" y="276" text-anchor="middle">08.05</text><text class="tick" x="233.6" y="276" text-anchor="middle">01.06</text><text class="tick" x="321.5" y="276" text-anchor="middle">25.06</text><text class="tick" x="409.3" y="276" text-anchor="middle">19.07</text><text class="tick" x="497.1" y="276" text-anchor="middle">12.08</text><text class="tick" x="584.9" y="276" text-anchor="middle">05.09</text><text class="tick" x="672.7" y="276" text-anchor="middle">29.09</text>
+<line class="ref" x1="58" y1="258" x2="702" y2="258"/>
+<polyline class="s3" points="58.0,205.0 87.3,197.7 116.5,192.3 145.8,195.8 175.1,215.3 204.4,214.2 233.6,208.2 262.9,177.8 292.2,152.2 321.5,134.4 350.7,95.7 380.0,80.8 409.3,90.9 438.5,68.6 467.8,89.3 497.1,76.2 526.4,79.8 555.6,80.2 584.9,84.1 614.2,78.6 643.5,76.2 672.7,77.2 702.0,76.6"/>
+<text class="lbl s3t" x="698.0" y="64.6" text-anchor="end">AUC</text>
+<circle class="hit" cx="58.0" cy="205.0" r="12" data-t="14.04 · AUC 0.616 · полнота 31% · точность 22%"/><circle class="hit" cx="87.3" cy="197.7" r="12" data-t="22.04 · AUC 0.625 · полнота 34% · точность 24%"/><circle class="hit" cx="116.5" cy="192.3" r="12" data-t="30.04 · AUC 0.632 · полнота 35% · точность 25%"/><circle class="hit" cx="145.8" cy="195.8" r="12" data-t="08.05 · AUC 0.628 · полнота 34% · точность 24%"/><circle class="hit" cx="175.1" cy="215.3" r="12" data-t="16.05 · AUC 0.603 · полнота 28% · точность 20%"/><circle class="hit" cx="204.4" cy="214.2" r="12" data-t="24.05 · AUC 0.605 · полнота 31% · точность 22%"/><circle class="hit" cx="233.6" cy="208.2" r="12" data-t="01.06 · AUC 0.612 · полнота 31% · точность 22%"/><circle class="hit" cx="262.9" cy="177.8" r="12" data-t="09.06 · AUC 0.650 · полнота 34% · точность 24%"/><circle class="hit" cx="292.2" cy="152.2" r="12" data-t="17.06 · AUC 0.682 · полнота 37% · точность 26%"/><circle class="hit" cx="321.5" cy="134.4" r="12" data-t="25.06 · AUC 0.705 · полнота 37% · точность 26%"/><circle class="hit" cx="350.7" cy="95.7" r="12" data-t="03.07 · AUC 0.753 · полнота 43% · точность 30%"/><circle class="hit" cx="380.0" cy="80.8" r="12" data-t="11.07 · AUC 0.771 · полнота 51% · точность 36%"/><circle class="hit" cx="409.3" cy="90.9" r="12" data-t="19.07 · AUC 0.759 · полнота 48% · точность 34%"/><circle class="hit" cx="438.5" cy="68.6" r="12" data-t="27.07 · AUC 0.787 · полнота 49% · точность 35%"/><circle class="hit" cx="467.8" cy="89.3" r="12" data-t="04.08 · AUC 0.761 · полнота 51% · точность 36%"/><circle class="hit" cx="497.1" cy="76.2" r="12" data-t="12.08 · AUC 0.777 · полнота 55% · точность 39%"/><circle class="hit" cx="526.4" cy="79.8" r="12" data-t="20.08 · AUC 0.773 · полнота 52% · точность 37%"/><circle class="hit" cx="555.6" cy="80.2" r="12" data-t="28.08 · AUC 0.772 · полнота 52% · точность 37%"/><circle class="hit" cx="584.9" cy="84.1" r="12" data-t="05.09 · AUC 0.767 · полнота 51% · точность 36%"/><circle class="hit" cx="614.2" cy="78.6" r="12" data-t="13.09 · AUC 0.774 · полнота 54% · точность 38%"/><circle class="hit" cx="643.5" cy="76.2" r="12" data-t="21.09 · AUC 0.777 · полнота 57% · точность 40%"/><circle class="hit" cx="672.7" cy="77.2" r="12" data-t="29.09 · AUC 0.776 · полнота 52% · точность 37%"/><circle class="hit" cx="702.0" cy="76.6" r="12" data-t="07.10 · AUC 0.777 · полнота 55% · точность 39%"/></svg>
+<p class="note">Сигнал становится полезным с начала июля: AUC растёт с 0,62 до 0,77–0,79 и дальше
+выходит на плато. При доле тревог 20 % полнота достигает 55 %.</p></div>
+
+<div class="card"><h2>Валовой сбор по стране</h2>
+<p>Сумма прогнозов по субъектам против факта Росстата, млн т.</p>
+<svg viewBox="0 0 720 300" role="img" aria-label="Валовой сбор по стране: факт и прогноз">
+<line class="grid" x1="58" y1="258.0" x2="702" y2="258.0"/><text class="tick" x="50" y="262.0" text-anchor="end">100</text><line class="grid" x1="58" y1="210.0" x2="702" y2="210.0"/><text class="tick" x="50" y="214.0" text-anchor="end">110</text><line class="grid" x1="58" y1="162.0" x2="702" y2="162.0"/><text class="tick" x="50" y="166.0" text-anchor="end">120</text><line class="grid" x1="58" y1="114.0" x2="702" y2="114.0"/><text class="tick" x="50" y="118.0" text-anchor="end">130</text><line class="grid" x1="58" y1="66.0" x2="702" y2="66.0"/><text class="tick" x="50" y="70.0" text-anchor="end">140</text><line class="grid" x1="58" y1="18.0" x2="702" y2="18.0"/><text class="tick" x="50" y="22.0" text-anchor="end">150</text><rect class="b2 hit" x="71.7" y="198.1" width="31.3" height="59.9" rx="4" data-t="2018 · факт 112.5 · прогноз 119.2 млн т (+6.0 %)"/><rect class="b1 hit" x="105.0" y="165.8" width="31.3" height="92.2" rx="4" data-t="2018 · факт 112.5 · прогноз 119.2 млн т (+6.0 %)"/><text class="tick" x="104.0" y="276" text-anchor="middle">2018</text><rect class="b2 hit" x="163.7" y="164.0" width="31.3" height="94.0" rx="4" data-t="2019 · факт 119.6 · прогноз 117.7 млн т (-1.6 %)"/><rect class="b1 hit" x="197.0" y="173.0" width="31.3" height="85.0" rx="4" data-t="2019 · факт 119.6 · прогноз 117.7 млн т (-1.6 %)"/><text class="tick" x="196.0" y="276" text-anchor="middle">2019</text><rect class="b2 hit" x="255.7" y="102.0" width="31.3" height="156.0" rx="4" data-t="2020 · факт 132.5 · прогноз 132.8 млн т (+0.2 %)"/><rect class="b1 hit" x="289.0" y="100.8" width="31.3" height="157.2" rx="4" data-t="2020 · факт 132.5 · прогноз 132.8 млн т (+0.2 %)"/><text class="tick" x="288.0" y="276" text-anchor="middle">2020</text><rect class="b2 hit" x="347.7" y="173.8" width="31.3" height="84.2" rx="4" data-t="2021 · факт 117.5 · прогноз 128.0 млн т (+8.8 %)"/><rect class="b1 hit" x="381.0" y="123.8" width="31.3" height="134.2" rx="4" data-t="2021 · факт 117.5 · прогноз 128.0 млн т (+8.8 %)"/><text class="tick" x="380.0" y="276" text-anchor="middle">2021</text><rect class="b2 hit" x="439.7" y="126.1" width="31.3" height="131.9" rx="4" data-t="2022 · факт 127.5 · прогноз 109.4 млн т (-14.2 %)"/><rect class="b1 hit" x="473.0" y="212.8" width="31.3" height="45.2" rx="4" data-t="2022 · факт 127.5 · прогноз 109.4 млн т (-14.2 %)"/><text class="tick" x="472.0" y="276" text-anchor="middle">2022</text><rect class="b2 hit" x="531.7" y="56.1" width="31.3" height="201.9" rx="4" data-t="2023 · факт 142.1 · прогноз 141.9 млн т (-0.1 %)"/><rect class="b1 hit" x="565.0" y="56.9" width="31.3" height="201.1" rx="4" data-t="2023 · факт 142.1 · прогноз 141.9 млн т (-0.1 %)"/><text class="tick" x="564.0" y="276" text-anchor="middle">2023</text><rect class="b2 hit" x="623.7" y="143.8" width="31.3" height="114.2" rx="4" data-t="2024 · факт 123.8 · прогноз 144.8 млн т (+16.9 %)"/><rect class="b1 hit" x="657.0" y="43.2" width="31.3" height="214.8" rx="4" data-t="2024 · факт 123.8 · прогноз 144.8 млн т (+16.9 %)"/><text class="tick" x="656.0" y="276" text-anchor="middle">2024</text>
+<text class="lbl s2t" x="58" y="20">факт</text>
+<text class="lbl s1t" x="106" y="20">прогноз</text></svg></div>
+
+<div class="card"><h2>Откуда берётся ошибка</h2>
+<p>RMSE при отсечке 20.08, тыс. т.</p>
+<div class="crow"><span>полная модель</span><b>434</b></div><div class="crow"><span>идеальная урожайность (предел декомпозиции)</span><b>64</b></div><div class="crow"><span>эталон: сезонное среднее вместо MIDAS</span><b>424</b></div>
+<p class="note">Если бы урожайность была известна точно, ошибка составила бы 64 тыс. т — то есть
+85 % ошибки вносит прогноз урожайности, а не коэффициент уборки и не площадь.
+Это и есть предел, к которому может стремиться спутниковый канал.</p></div>
+
+<div class="card"><h2>Таблица</h2>
+<details open><summary>Показатели по всем отсечкам сезона</summary>
+<table><thead><tr><th>Отсечка</th><th>MIDAS, тыс. т</th><th>Эталон</th><th>Выигрыш, %</th><th>AUC</th></tr></thead>
+<tbody><tr><td>14.04</td><td>560</td><td>560</td><td>+0.0</td><td>0.616</td></tr><tr><td>22.04</td><td>573</td><td>568</td><td>-0.9</td><td>0.625</td></tr><tr><td>30.04</td><td>580</td><td>556</td><td>-4.3</td><td>0.632</td></tr><tr><td>08.05</td><td>576</td><td>549</td><td>-5.0</td><td>0.628</td></tr><tr><td>16.05</td><td>568</td><td>543</td><td>-4.6</td><td>0.603</td></tr><tr><td>24.05</td><td>561</td><td>537</td><td>-4.4</td><td>0.605</td></tr><tr><td>01.06</td><td>542</td><td>531</td><td>-1.9</td><td>0.612</td></tr><tr><td>09.06</td><td>529</td><td>524</td><td>-1.0</td><td>0.650</td></tr><tr><td>17.06</td><td>500</td><td>514</td><td>+2.7</td><td>0.682</td></tr><tr><td>25.06</td><td>491</td><td>501</td><td>+1.9</td><td>0.705</td></tr><tr><td>03.07</td><td>463</td><td>486</td><td>+4.7</td><td>0.753</td></tr><tr><td>11.07</td><td>460</td><td>471</td><td>+2.2</td><td>0.771</td></tr><tr><td>19.07</td><td>449</td><td>455</td><td>+1.2</td><td>0.759</td></tr><tr><td>27.07</td><td>440</td><td>440</td><td>-0.1</td><td>0.787</td></tr><tr><td>04.08</td><td>446</td><td>436</td><td>-2.3</td><td>0.761</td></tr><tr><td>12.08</td><td>439</td><td>428</td><td>-2.8</td><td>0.777</td></tr><tr><td>20.08</td><td>434</td><td>424</td><td>-2.4</td><td>0.773</td></tr><tr><td>28.08</td><td>434</td><td>424</td><td>-2.4</td><td>0.772</td></tr><tr><td>05.09</td><td>436</td><td>427</td><td>-2.0</td><td>0.767</td></tr><tr><td>13.09</td><td>439</td><td>436</td><td>-0.7</td><td>0.774</td></tr><tr><td>21.09</td><td>444</td><td>445</td><td>+0.3</td><td>0.777</td></tr><tr><td>29.09</td><td>457</td><td>453</td><td>-0.8</td><td>0.776</td></tr><tr><td>07.10</td><td>451</td><td>462</td><td>+2.4</td><td>0.777</td></tr></tbody></table></details></div>
+</div><div id="tip"></div>
+<script>
+const tip=document.getElementById('tip');
+document.querySelectorAll('.hit').forEach(el=>{
+  el.addEventListener('mouseenter',e=>{tip.textContent=el.dataset.t;tip.style.opacity=1});
+  el.addEventListener('mousemove',e=>{
+    tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8)+'px';
+    tip.style.top=(e.clientY-34)+'px';});
+  el.addEventListener('mouseleave',()=>tip.style.opacity=0);
+});
+</script></body></html>
