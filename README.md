@@ -187,3 +187,27 @@ python scripts/07_midas_nowcast.py --source both   # совместная спе
 
 Готовое к загрузке в Earth Engine: `data/boundaries/gee/ru_regions_shapefile.zip`
 (те же 83 полигона, что использованы для ERA5) и `gee/export_modis_ndvi.js`.
+
+## Лицензия
+
+| Что | Лицензия | Файл |
+|---|---|---|
+| Исходный код (`src/`, `scripts/`, `gee/`, `tests/`, `configs/`, `nowcast.py`) | MIT | [`LICENSE`](LICENSE) |
+| Производные данные и отчёты (`results/`) | CC BY 4.0 | [`LICENSE-DATA`](LICENSE-DATA) |
+| Первичные данные | режим издателей, см. таблицу | [`LICENSE-DATA`](LICENSE-DATA) |
+
+Автор не является правообладателем первичных данных. Спутниковые продукты
+предоставлены NASA LP DAAC, климатический реанализ — Copernicus Climate
+Change Service, статистика — Росстатом.
+
+Contains modified Copernicus Climate Change Service information 2026.
+Neither the European Commission nor ECMWF is responsible for any use that
+may be made of the Copernicus information or data it contains.
+
+### Цитирование
+
+При использовании кода или результатов:
+
+> Овчинников А. AgroForecast: конвейер внутрисезонной оценки валового
+> сбора зерновых по субъектам Российской Федерации. 2026.
+> URL: https://github.com/arseniy-ovchinnikov/AgroForecast
