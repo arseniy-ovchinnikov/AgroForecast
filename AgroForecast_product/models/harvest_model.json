@@ -1,0 +1,52 @@
+{
+  "created_utc": "2026-08-17T06:25:23+00:00",
+  "target": "gross_harvest_kt",
+  "target_unit": "тыс. т",
+  "identity": "G = Y * rho * S / 10",
+  "source": "viirs",
+  "source_label": "VIIRS VNP13A1, 8 дней",
+  "hf_variables": [
+    "ndvi",
+    "evi"
+  ],
+  "n_periods": 23,
+  "lf_controls": [
+    "yield_lag_1",
+    "yield_roll_mean_3",
+    "yield_roll_mean_5",
+    "linear_trend"
+  ],
+  "scheme": "beta",
+  "area_source": "operational",
+  "train_start": 2012,
+  "test_years": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "best_horizon_k": 17,
+  "n_obs": 798,
+  "n_regions": 73,
+  "metrics_best": [
+    {
+      "horizon_k": 17,
+      "n": 459,
+      "урожайность_RMSE_ц_га": 4.69,
+      "сбор_MAE_тыс_т": 225.7,
+      "сбор_RMSE_тыс_т": 434.0,
+      "сбор_R2": 0.973,
+      "сбор_MAPE_%": 15.98,
+      "эталон_RMSE_тыс_т": 423.9,
+      "выигрыш_vs_эталон_%": -2.39,
+      "предел_декомпозиции_RMSE": 63.8,
+      "страна_MAPE_%": 6.83,
+      "страна_Bias_тыс_т": 2604.5
+    }
+  ]
+}
